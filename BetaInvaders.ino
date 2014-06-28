@@ -141,6 +141,7 @@ void update_bullet(Bullet* bullet) {
         if(live_enemies == 0) {
           game_state = GAME_WIN;
         }
+        return;
       }
     }
   }
