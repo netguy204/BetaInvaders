@@ -3,8 +3,8 @@
 #define BUTTON 1
 #define LIGHT A9
 
-#define MAX_ENEMIES 10
-#define MAX_BULLETS 20
+#define MAX_ENEMIES 20
+#define MAX_BULLETS 50
 
 #define SCREEN_WIDTH 8
 #define SCREEN_HEIGHT 8
@@ -119,6 +119,7 @@ void update_bullet(Bullet* bullet) {
     bullet->pos.y -= 1;
     if(bullet->pos.y < 0) {
       free_bullet(bullet);
+      return;
     }
     if(same(&bullet->pos, &player.pos)) {
       game_state = GAME_LOSE;
@@ -127,6 +128,7 @@ void update_bullet(Bullet* bullet) {
     bullet->pos.y += 1;
     if(bullet->pos.y >= SCREEN_HEIGHT) {
       free_bullet(bullet);
+      return;
     }
     // player bullets cheat slightly so that the player feels more powerful
     Vector above;
@@ -135,6 +137,7 @@ void update_bullet(Bullet* bullet) {
     for(int ii = 0; ii < live_enemies; ++ii) {
       if(same(&enemies[ii].pos, &bullet->pos) || same(&enemies[ii].pos, &above)) {
         free_enemy(&enemies[ii]);
+        free_bullet(bullet);
         if(live_enemies == 0) {
           game_state = GAME_WIN;
         }
@@ -215,6 +218,8 @@ void loop() {
       delay(200);
     }
     delay(300);
+    init_enemies = 2;
+    
     game_state = GAME_INIT;
   } else if(game_state == GAME_WIN) {
     lc.clearDisplay(0);
