@@ -3,8 +3,8 @@
 #define BUTTON 1
 #define LIGHT A9
 
-#define MAX_ENEMIES 20
-#define MAX_BULLETS 50
+#define MAX_ENEMIES 15
+#define MAX_BULLETS 35
 
 #define SCREEN_WIDTH 8
 #define SCREEN_HEIGHT 8
