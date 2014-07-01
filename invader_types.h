@@ -6,8 +6,8 @@ struct Vector {
 
 struct Enemy {
   Vector pos;
-  int state;
-  int cooldown;
+  int state : 2;
+  int cooldown : 6;
 };
 
 struct Player {

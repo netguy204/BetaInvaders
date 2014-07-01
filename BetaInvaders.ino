@@ -1,3 +1,6 @@
+#include <LedControl.h>
+#include "invader_types.h"
+
 #define JOYX A8
 #define JOYY A5
 #define BUTTON 1
@@ -16,9 +19,6 @@
 #define GAME_PLAY 1
 #define GAME_LOSE 2
 #define GAME_WIN 3
-
-#include "invader_types.h"
-#include <LedControl.h>
 
 LedControl lc = LedControl(10,11,12,1);
 
@@ -177,12 +177,31 @@ void loop() {
     
     // glitch, one object is skipped when a bullet or enemy is removed by the update function
     // update bullets and enemies once every other frame
+    int last_size = live_bullets;
     for(int ii = 0; ii < live_bullets; ++ii) {
-      if(!&bullets[ii].enemy || update_state & 1 == 1) update_bullet(&bullets[ii]);
+      if(!&bullets[ii].enemy || update_state & 1 == 1) {
+        update_bullet(&bullets[ii]);
+        if(last_size != live_bullets) {
+          // something was removed, repeat update
+          --ii;
+          last_size = live_bullets;
+          continue;
+        }
+      }
       lc.setLed(0, SCREEN_HEIGHT - 1 - bullets[ii].pos.y, bullets[ii].pos.x, true);
     }
+    
+    last_size = live_enemies;
     for(int ii = 0; ii < live_enemies; ++ii) {
-      if(update_state & 1 == 1) update_enemy(&enemies[ii]);
+      if(update_state & 1 == 1) {
+        update_enemy(&enemies[ii]);
+        if(last_size != live_enemies) {
+          // something was removed, repeat update
+          --ii;
+          last_size = live_enemies;
+          continue;
+        }
+      }
       lc.setLed(0, SCREEN_HEIGHT - 1 - enemies[ii].pos.y, enemies[ii].pos.x, true);
     }
     
