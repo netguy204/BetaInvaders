@@ -1,21 +1,22 @@
+#include <stdint.h>
 
 struct Vector {
-  int x;
-  int y;
+  int8_t x;
+  int8_t y;
 };
 
 struct Enemy {
   Vector pos;
-  int state : 2;
-  int cooldown : 6;
+  char state : 2;
+  char cooldown : 6;
 };
 
 struct Player {
   Vector pos;
-  int state;
+  uint8_t state;
 };
 
 struct Bullet {
   Vector pos;
-  int enemy;
+  uint8_t enemy;
 };

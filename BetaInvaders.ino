@@ -1,4 +1,6 @@
 #include <LedControl.h>
+#include <stdint.h>
+
 #include "invader_types.h"
 
 #define JOYX A8
@@ -6,7 +8,7 @@
 #define BUTTON 1
 #define LIGHT A9
 
-#define MAX_ENEMIES 15
+#define MAX_ENEMIES 24
 #define MAX_BULLETS 15
 
 #define SCREEN_WIDTH 8
@@ -24,11 +26,12 @@ LedControl lc = LedControl(10,11,12,1);
 
 Enemy enemies[MAX_ENEMIES];
 Bullet bullets[MAX_BULLETS];
-int live_enemies;
-int live_bullets;
-int init_enemies;
 Player player;
-int game_state = GAME_INIT;
+
+uint8_t live_enemies;
+uint8_t live_bullets;
+uint8_t init_enemies;
+uint8_t game_state = GAME_INIT;
 
 bool above(Vector* a, Vector* b) {
   return a->x == b->x && a->y > b->y;
@@ -50,14 +53,14 @@ Enemy* init_enemy(int x, int y) {
 }
 
 void free_enemy(Enemy* e) {
-  int index = (int)(e - enemies);
-  for(int ii = index + 1; ii < live_enemies; ++ii) {
+  uint8_t index = (uint8_t)(e - enemies);
+  for(uint8_t ii = index + 1; ii < live_enemies; ++ii) {
     enemies[ii-1] = enemies[ii];
   }
   live_enemies--;
 }
 
-Bullet* init_bullet(int x, int y) {
+Bullet* init_bullet(int8_t x, int8_t y) {
   if(live_bullets == MAX_BULLETS) return NULL;
   
   Bullet* bullet = &bullets[live_bullets++];
@@ -68,7 +71,7 @@ Bullet* init_bullet(int x, int y) {
 }
 
 void free_bullet(Bullet* b) {
-  int index = (int)(b - bullets);
+  uint8_t index = (uint8_t)(b - bullets);
   for(int ii = index + 1; ii < live_bullets; ++ii) {
     bullets[ii-1] = bullets[ii];
   }
@@ -134,7 +137,7 @@ void update_bullet(Bullet* bullet) {
     Vector above;
     above.x = bullet->pos.x;
     above.y = bullet->pos.y + 1;
-    for(int ii = 0; ii < live_enemies; ++ii) {
+    for(uint8_t ii = 0; ii < live_enemies; ++ii) {
       if(same(&enemies[ii].pos, &bullet->pos) || same(&enemies[ii].pos, &above)) {
         free_enemy(&enemies[ii]);
         free_bullet(bullet);
@@ -161,8 +164,8 @@ void loop() {
   if(game_state == GAME_INIT) {
     live_enemies = 0;
     live_bullets = 0;
-    for(int i = 0; i < init_enemies; ++i) {
-      int y = SCREEN_HEIGHT - 1 - i*2 / SCREEN_WIDTH;
+    for(uint8_t i = 0; i < init_enemies; ++i) {
+      int8_t y = SCREEN_HEIGHT - 1 - i*2 / SCREEN_WIDTH;
       init_enemy(i*2 % SCREEN_WIDTH, y);
     }
     
@@ -173,12 +176,12 @@ void loop() {
   } else if(game_state == GAME_PLAY) {
     lc.clearDisplay(0);
     
-    long start = millis();
+    uint16_t start = millis();
     
     // glitch, one object is skipped when a bullet or enemy is removed by the update function
     // update bullets and enemies once every other frame
-    int last_size = live_bullets;
-    for(int ii = 0; ii < live_bullets; ++ii) {
+    uint8_t last_size = live_bullets;
+    for(uint8_t ii = 0; ii < live_bullets; ++ii) {
       if(!&bullets[ii].enemy || update_state & 1 == 1) {
         update_bullet(&bullets[ii]);
         if(last_size != live_bullets) {
@@ -192,7 +195,7 @@ void loop() {
     }
     
     last_size = live_enemies;
-    for(int ii = 0; ii < live_enemies; ++ii) {
+    for(uint8_t ii = 0; ii < live_enemies; ++ii) {
       if(update_state & 1 == 1) {
         update_enemy(&enemies[ii]);
         if(last_size != live_enemies) {
@@ -206,8 +209,8 @@ void loop() {
     }
     
     // process player direction inputs
-    long dx = analogRead(JOYX);
-    long dy = analogRead(JOYY);
+    uint16_t dx = analogRead(JOYX);
+    uint16_t dy = analogRead(JOYY);
     if(dx < LIVEZONE) {
       player.pos.x += 1;
     } else if(dx > 1023 - LIVEZONE) {
@@ -217,7 +220,7 @@ void loop() {
     if(player.pos.x >= SCREEN_WIDTH) player.pos.x = SCREEN_WIDTH - 1;
     
     // fire only on a button press edge
-    int fire = !digitalRead(BUTTON);
+    uint8_t fire = !digitalRead(BUTTON);
     if(fire && player.state == 0) {
       fire_player();
       player.state = 1;
@@ -227,12 +230,12 @@ void loop() {
     
     lc.setLed(0, SCREEN_HEIGHT - 1 - player.pos.y, player.pos.x, true);
     
-    long dt = millis() - start;
+    uint16_t dt = millis() - start;
     delay(max(0, 80 - dt));
     ++update_state;
   } else if(game_state == GAME_LOSE) {
     lc.clearDisplay(0);
-    for(int ii = 0; ii < SCREEN_WIDTH; ++ii) {
+    for(uint16_t ii = 0; ii < SCREEN_WIDTH; ++ii) {
       lc.setLed(0, ii, ii, true);
       lc.setLed(0, SCREEN_HEIGHT - 1 -ii, ii, true);
       delay(200);
